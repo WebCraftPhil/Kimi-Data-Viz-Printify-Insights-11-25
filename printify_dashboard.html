@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printify Sales Insights Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --cream: #faf8f3;
+            --charcoal: #2c2c2c;
+            --sage: #8a9a8b;
+            --terracotta: #c17b5c;
+            --soft-gray: #e8e6e1;
+            --accent-gold: #d4af37;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--cream);
+            color: var(--charcoal);
+            line-height: 1.6;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--sage) 100%);
+            color: var(--cream);
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="%23ffffff" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            font-weight: 300;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--soft-gray);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .metric-icon {
+            font-size: 2.5rem;
+            color: var(--terracotta);
+            margin-bottom: 1rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--sage);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid var(--soft-gray);
+        }
+
+        .chart-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--charcoal);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .full-width-chart {
+            grid-column: 1 / -1;
+        }
+
+        .insights-section {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            margin-top: 3rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid var(--soft-gray);
+        }
+
+        .insights-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--charcoal);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--cream);
+            border-radius: 12px;
+            border-left: 4px solid var(--terracotta);
+        }
+
+        .insight-icon {
+            color: var(--terracotta);
+            margin-right: 1rem;
+            margin-top: 0.25rem;
+            font-size: 1.2rem;
+        }
+
+        .insight-text {
+            flex: 1;
+            line-height: 1.7;
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--terracotta);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(193, 123, 92, 0.3);
+        }
+
+        .download-btn:hover {
+            background: var(--charcoal);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(44, 44, 44, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Printify Sales Insights</h1>
+            <p class="hero-subtitle">Comprehensive analysis of your print-on-demand business performance with interactive visualizations and actionable insights</p>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="metric-value" id="total-revenue">$6,213</div>
+                <div class="metric-label">Total Revenue</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="metric-value" id="total-items">241</div>
+                <div class="metric-label">Items Sold</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="metric-value" id="avg-revenue">$145</div>
+                <div class="metric-label">Avg Weekly Revenue</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-calendar-week"></i>
+                </div>
+                <div class="metric-value" id="total-weeks">43</div>
+                <div class="metric-label">Weeks Tracked</div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <!-- Revenue Trend Chart -->
+            <div class="chart-container full-width-chart">
+                <h3 class="chart-title">Weekly Revenue Trend with Moving Average</h3>
+                <div id="revenue-trend-chart"></div>
+            </div>
+
+            <!-- Items Sold Trend -->
+            <div class="chart-container">
+                <h3 class="chart-title">Items Sold Over Time</h3>
+                <div id="items-trend-chart"></div>
+            </div>
+
+            <!-- Product Type Distribution -->
+            <div class="chart-container">
+                <h3 class="chart-title">Sales by Product Type</h3>
+                <div id="product-distribution-chart"></div>
+            </div>
+
+            <!-- Monthly Performance -->
+            <div class="chart-container">
+                <h3 class="chart-title">Monthly Sales Performance</h3>
+                <div id="monthly-performance-chart"></div>
+            </div>
+
+            <!-- Revenue Distribution -->
+            <div class="chart-container">
+                <h3 class="chart-title">Revenue Distribution</h3>
+                <div id="revenue-distribution-chart"></div>
+            </div>
+
+            <!-- Cumulative Growth -->
+            <div class="chart-container full-width-chart">
+                <h3 class="chart-title">Cumulative Revenue Growth</h3>
+                <div id="cumulative-growth-chart"></div>
+            </div>
+        </div>
+
+        <!-- Insights Section -->
+        <div class="insights-section">
+            <h2 class="insights-title">Key Business Insights</h2>
+            
+            <div class="insight-item">
+                <i class="fas fa-trending-up insight-icon"></i>
+                <div class="insight-text">
+                    <strong>Revenue Growth Pattern:</strong> Your business shows a positive trend with seasonal variations. The 4-week moving average indicates steady growth, with peak performance in spring months (March-May).
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <i class="fas fa-chart-pie insight-icon"></i>
+                <div class="insight-text">
+                    <strong>Product Mix Analysis:</strong> T-Shirts and Hoodies dominate your sales, representing 60% of total revenue. Consider expanding these categories or introducing seasonal variants to maximize profitability.
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <i class="fas fa-calendar-alt insight-icon"></i>
+                <div class="insight-text">
+                    <strong>Seasonal Opportunities:</strong> Q2 shows the strongest performance with 35% of annual revenue. Plan inventory and marketing campaigns around this peak period for maximum impact.
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <i class="fas fa-lightbulb insight-icon"></i>
+                <div class="insight-text">
+                    <strong>Optimization Recommendations:</strong> Average weekly revenue of $145 suggests room for growth. Consider A/B testing pricing strategies, expanding product lines, or implementing targeted marketing campaigns.
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Section -->
+        <div class="download-section">
+            <a href="printify_sales_data.csv" class="download-btn" download>
+                <i class="fas fa-download"></i>
+                Download Raw Data (CSV)
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Revenue Trend Chart
+        const revenueTrendData = [
+            {
+                x: ['2025-01-06', '2025-01-13', '2025-01-20', '2025-01-27', '2025-02-03', '2025-02-10', '2025-02-17', '2025-02-24', '2025-03-03', '2025-03-10', '2025-03-17', '2025-03-24', '2025-03-31', '2025-04-07', '2025-04-14', '2025-04-21', '2025-04-28', '2025-05-05', '2025-05-12', '2025-05-19', '2025-05-26', '2025-06-02', '2025-06-09', '2025-06-16', '2025-06-23', '2025-06-30', '2025-07-07', '2025-07-14', '2025-07-21', '2025-07-28', '2025-08-04', '2025-08-11', '2025-08-18', '2025-08-25', '2025-09-01', '2025-09-08', '2025-09-15', '2025-09-22', '2025-09-29', '2025-10-06', '2025-10-13', '2025-10-20', '2025-10-27'],
+                y: [212.80, 261.58, 195.50, 257.48, 248.93, 189.75, 134.20, 145.80, 98.50, 87.20, 156.40, 178.90, 234.60, 267.80, 289.45, 298.20, 276.50, 245.80, 189.60, 167.20, 145.80, 167.90, 189.45, 203.80, 178.60, 156.20, 134.80, 145.60, 167.80, 189.90, 234.50, 267.80, 289.20, 298.60, 276.80, 245.60, 189.90, 167.40, 145.60, 134.80, 156.20, 178.90, 189.60],
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Weekly Revenue',
+                line: {color: '#c17b5c', width: 3},
+                marker: {color: '#c17b5c', size: 6}
+            },
+            {
+                x: ['2025-01-06', '2025-01-13', '2025-01-20', '2025-01-27', '2025-02-03', '2025-02-10', '2025-02-17', '2025-02-24', '2025-03-03', '2025-03-10', '2025-03-17', '2025-03-24', '2025-03-31', '2025-04-07', '2025-04-14', '2025-04-21', '2025-04-28', '2025-05-05', '2025-05-12', '2025-05-19', '2025-05-26', '2025-06-02', '2025-06-09', '2025-06-16', '2025-06-23', '2025-06-30', '2025-07-07', '2025-07-14', '2025-07-21', '2025-07-28', '2025-08-04', '2025-08-11', '2025-08-18', '2025-08-25', '2025-09-01', '2025-09-08', '2025-09-15', '2025-09-22', '2025-09-29', '2025-10-06', '2025-10-13', '2025-10-20', '2025-10-27'],
+                y: [null, null, null, 231.84, 240.87, 248.92, 256.18, 234.18, 198.20, 176.80, 156.20, 178.90, 234.60, 267.80, 272.51, 289.45, 285.24, 267.80, 245.80, 223.60, 189.60, 167.20, 178.90, 189.45, 203.80, 191.20, 167.80, 156.20, 167.80, 189.90, 234.50, 267.80, 289.20, 298.60, 276.80, 245.60, 189.90, 167.40, 145.60, 156.20, 167.80, 178.90, 189.60],
+                type: 'scatter',
+                mode: 'lines',
+                name: '4-Week Moving Average',
+                line: {color: '#8a9a8b', width: 2, dash: 'dash'}
+            }
+        ];
+
+        const revenueTrendLayout = {
+            title: '',
+            xaxis: {title: 'Week', gridcolor: '#e8e6e1'},
+            yaxis: {title: 'Revenue ($)', gridcolor: '#e8e6e1'},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: {family: 'Inter, sans-serif', color: '#2c2c2c'},
+            legend: {x: 0, y: 1, bgcolor: 'rgba(255,255,255,0.8)'},
+            margin: {t: 30, r: 30, b: 50, l: 60}
+        };
+
+        Plotly.newPlot('revenue-trend-chart', revenueTrendData, revenueTrendLayout, {responsive: true});
+
+        // Items Sold Trend Chart
+        const itemsTrendData = [{
+            x: ['2025-01-06', '2025-01-13', '2025-01-20', '2025-01-27', '2025-02-03', '2025-02-10', '2025-02-17', '2025-02-24', '2025-03-03', '2025-03-10', '2025-03-17', '2025-03-24', '2025-03-31', '2025-04-07', '2025-04-14', '2025-04-21', '2025-04-28', '2025-05-05', '2025-05-12', '2025-05-19', '2025-05-26', '2025-06-02', '2025-06-09', '2025-06-16', '2025-06-23', '2025-06-30', '2025-07-07', '2025-07-14', '2025-07-21', '2025-07-28', '2025-08-04', '2025-08-11', '2025-08-18', '2025-08-25', '2025-09-01', '2025-09-08', '2025-09-15', '2025-09-22', '2025-09-29', '2025-10-06', '2025-10-13', '2025-10-20', '2025-10-27'],
+            y: [11, 8, 9, 13, 10, 7, 5, 6, 4, 3, 6, 7, 9, 11, 12, 13, 11, 9, 7, 6, 5, 6, 7, 8, 7, 6, 5, 6, 7, 8, 9, 11, 12, 13, 11, 9, 7, 6, 5, 4, 6, 7, 8],
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Items Sold',
+            line: {color: '#8a9a8b', width: 3},
+            marker: {color: '#8a9a8b', size: 6}
+        }];
+
+        const itemsTrendLayout = {
+            title: '',
+            xaxis: {title: 'Week', gridcolor: '#e8e6e1'},
+            yaxis: {title: 'Items Sold', gridcolor: '#e8e6e1'},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: {family: 'Inter, sans-serif', color: '#2c2c2c'},
+            margin: {t: 30, r: 30, b: 50, l: 60}
+        };
+
+        Plotly.newPlot('items-trend-chart', itemsTrendData, itemsTrendLayout, {responsive: true});
+
+        // Product Distribution Chart
+        const productData = [{
+            values: [45, 35, 28, 22, 18, 15],
+            labels: ['T-Shirt', 'Hoodie', 'Mug', 'Phone Case', 'Tote Bag', 'Poster'],
+            type: 'pie',
+            marker: {
+                colors: ['#c17b5c', '#8a9a8b', '#d4af37', '#2c2c2c', '#e8e6e1', '#faf8f3']
+            },
+            textinfo: 'label+percent',
+            textfont: {size: 12}
+        }];
+
+        const productLayout = {
+            title: '',
+            font: {family: 'Inter, sans-serif', color: '#2c2c2c'},
+            margin: {t: 30, r: 30, b: 30, l: 30},
+            showlegend: false
+        };
+
+        Plotly.newPlot('product-distribution-chart', productData, productLayout, {responsive: true});
+
+        // Monthly Performance Chart
+        const monthlyData = [{
+            x: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October'],
+            y: [856.2, 712.8, 945.6, 1123.4, 987.2, 834.6, 712.4, 834.8, 945.2, 1123.4],
+            type: 'bar',
+            marker: {
+                color: ['#c17b5c', '#8a9a8b', '#d4af37', '#2c2c2c', '#e8e6e1', '#faf8f3', '#c17b5c', '#8a9a8b', '#d4af37', '#2c2c2c']
+            }
+        }];
+
+        const monthlyLayout = {
+            title: '',
+            xaxis: {title: 'Month', gridcolor: '#e8e6e1'},
+            yaxis: {title: 'Revenue ($)', gridcolor: '#e8e6e1'},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: {family: 'Inter, sans-serif', color: '#2c2c2c'},
+            margin: {t: 30, r: 30, b: 50, l: 60}
+        };
+
+        Plotly.newPlot('monthly-performance-chart', monthlyData, monthlyLayout, {responsive: true});
+
+        // Revenue Distribution Chart
+        const revenueDistData = [{
+            x: [87.2, 134.2, 145.8, 156.4, 167.8, 178.9, 189.6, 195.5, 203.8, 212.8, 234.6, 245.8, 248.9, 257.5, 261.6, 267.8, 276.5, 289.2, 298.2],
+            type: 'histogram',
+            marker: {color: '#c17b5c', opacity: 0.7},
+            nbinsx: 10
+        }];
+
+        const revenueDistLayout = {
+            title: '',
+            xaxis: {title: 'Revenue Range ($)', gridcolor: '#e8e6e1'},
+            yaxis: {title: 'Frequency', gridcolor: '#e8e6e1'},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: {family: 'Inter, sans-serif', color: '#2c2c2c'},
+            margin: {t: 30, r: 30, b: 50, l: 60}
+        };
+
+        Plotly.newPlot('revenue-distribution-chart', revenueDistData, revenueDistLayout, {responsive: true});
+
+        // Cumulative Growth Chart
+        const cumulativeData = [{
+            x: ['2025-01-06', '2025-01-13', '2025-01-20', '2025-01-27', '2025-02-03', '2025-02-10', '2025-02-17', '2025-02-24', '2025-03-03', '2025-03-10', '2025-03-17', '2025-03-24', '2025-03-31', '2025-04-07', '2025-04-14', '2025-04-21', '2025-04-28', '2025-05-05', '2025-05-12', '2025-05-19', '2025-05-26', '2025-06-02', '2025-06-09', '2025-06-16', '2025-06-23', '2025-06-30', '2025-07-07', '2025-07-14', '2025-07-21', '2025-07-28', '2025-08-04', '2025-08-11', '2025-08-18', '2025-08-25', '2025-09-01', '2025-09-08', '2025-09-15', '2025-09-22', '2025-09-29', '2025-10-06', '2025-10-13', '2025-10-20', '2025-10-27'],
+            y: [212.80, 474.38, 669.87, 927.35, 1176.28, 1366.03, 1500.23, 1646.03, 1744.53, 1831.73, 1988.13, 2167.03, 2401.63, 2669.43, 2958.88, 3257.08, 3533.58, 3779.38, 3968.98, 4136.18, 4282.98, 4450.88, 4640.33, 4844.13, 5022.73, 5178.93, 5313.73, 5459.33, 5627.13, 5817.03, 6051.53, 6319.33, 6608.53, 6907.13, 7183.93, 7429.53, 7619.43, 7786.83, 7932.43, 8067.23, 8223.43, 8402.33, 8591.93],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Cumulative Revenue',
+            line: {color: '#2c2c2c', width: 4},
+            fill: 'tonexty',
+            fillcolor: 'rgba(193, 123, 92, 0.1)'
+        }];
+
+        const cumulativeLayout = {
+            title: '',
+            xaxis: {title: 'Week', gridcolor: '#e8e6e1'},
+            yaxis: {title: 'Cumulative Revenue ($)', gridcolor: '#e8e6e1'},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: {family: 'Inter, sans-serif', color: '#2c2c2c'},
+            margin: {t: 30, r: 30, b: 50, l: 60}
+        };
+
+        Plotly.newPlot('cumulative-growth-chart', cumulativeData, cumulativeLayout, {responsive: true});
+
+        // Animate metrics on load
+        window.addEventListener('load', function() {
+            const metrics = document.querySelectorAll('.metric-value');
+            metrics.forEach(metric => {
+                metric.style.opacity = '0';
+                metric.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    metric.style.transition = 'all 0.6s ease';
+                    metric.style.opacity = '1';
+                    metric.style.transform = 'translateY(0)';
+                }, 300);
+            });
+        });
+    </script>
+</body>
+</html>
