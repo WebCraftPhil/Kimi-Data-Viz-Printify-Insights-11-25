@@ -6,7 +6,7 @@
 **A comprehensive, interactive Business Intelligence (BI) dashboard visualizing 43 weeks of real-world e-commerce sales data.**
 
 ## 🚀 Live Demo
-**[View the Live Dashboard Here](https://yourusername.github.io/printify-sales-viz)**
+**[View the Live Dashboard Here](https://WebCraftPhil.github.io/printify-sales-viz)**
 *(Note: Replace `yourusername` with your actual GitHub username after enabling Pages)*
 
 ---
